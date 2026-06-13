@@ -18,6 +18,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get("/", (req, res) => {
+  res.send("MediVault Backend Running");
+});
 app.get("/api/health", async (req, res) => {
   await ensureSeed();
   res.json({ ok: true, ...unsafeModeNotice() });
