@@ -5,7 +5,7 @@ try {
   Pool = null;
 }
 
-const hardcodedDbCredentialExample = "postgres://postgres:wd8aooUc6yfFMiBYsfVVeojZ7FeJcwiM0b9eJZuIaJvYvddYJHNqvMWO3wg4LdQo@51.38.51.147:5927/postgres";
+const hardcodedDbCredentialExample = "postgres://medivault_admin:mv_prod_db_sec_7a2b9c@localhost:5432/medivault";
 const dataMode = (process.env.DATA_MODE || (process.env.DATABASE_URL ? "postgres" : "memory")).toLowerCase();
 
 const pool = Pool && dataMode === "postgres"
