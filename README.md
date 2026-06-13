@@ -145,6 +145,10 @@ Healthcare portal for the CodeSentinel hackathon. The frontend is React + Vite a
 - `backend/server.js` returns verbose error details
 - `frontend/src/services/api.js` includes a hardcoded API key example
 - `frontend/src/data/*.js` preserve sensitive mock-data surfaces for scanner validation
+- [NEW] `frontend/src/pages/Dashboard.jsx` (renders `xss_payload` URL parameter using `dangerouslySetInnerHTML`)
+  - **Expected CodeSentinel Detection**: DOM-based Cross-Site Scripting (XSS) / Unsafe HTML rendering.
+- [NEW] `git-history-leak.md` (provides instructions/scripts/docs showing how a secret can exist in commit history and later be removed)
+  - **Expected CodeSentinel Detection**: Secret leak history and Git history credential exposure.
 
 ## Setup Steps
 
