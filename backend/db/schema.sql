@@ -1,0 +1,45 @@
+-- INTENTIONAL VULNERABILITY FOR DEMO
+-- Hardcoded DB credential example is documented in db.js for scanner demonstrations.
+
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS patients (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  age INTEGER NOT NULL,
+  blood_group TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  insurance_number TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS records (
+  id SERIAL PRIMARY KEY,
+  patient_id INTEGER REFERENCES patients(id) ON DELETE CASCADE,
+  doctor_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  diagnosis TEXT NOT NULL,
+  prescription TEXT NOT NULL,
+  notes TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS reports (
+  id SERIAL PRIMARY KEY,
+  patient_id INTEGER REFERENCES patients(id) ON DELETE CASCADE,
+  report_name TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS appointments (
+  id SERIAL PRIMARY KEY,
+  patient_id INTEGER REFERENCES patients(id) ON DELETE CASCADE,
+  doctor_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  appointment_date TIMESTAMPTZ NOT NULL,
+  status TEXT NOT NULL
+);
