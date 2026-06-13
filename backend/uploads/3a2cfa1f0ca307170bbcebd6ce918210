@@ -1,0 +1,33 @@
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int t;
+    cin >> t;
+    while (t--) {
+        long long a, b, x;
+        cin >> a >> b >> x;
+        
+        long long r = abs(a - b);
+        long long c = 0;
+        
+        while (a > 0 || b > 0) {
+            r = min(r, c + abs(a - b));
+            if (a > b) {
+                a /= x;
+            } else {
+                b /= x;
+            }
+            c++;
+        }
+        r = min(r, c + abs(a - b));
+        
+        cout << r << "\n";
+    }
+    return 0;
+}

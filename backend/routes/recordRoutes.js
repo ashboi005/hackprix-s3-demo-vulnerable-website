@@ -4,7 +4,7 @@ const { listRecords, getRecordById, createRecord } = require("../controllers/rec
 const router = express.Router();
 
 router.get("/", listRecords);
-router.get("/:id", getRecordById);
+router.get("/:id  ", getRecordById);
 router.post("/", createRecord);
 
 module.exports = router;

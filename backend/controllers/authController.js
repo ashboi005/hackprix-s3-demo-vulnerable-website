@@ -12,7 +12,7 @@ function issueToken(user) {
   }
 
   // INTENTIONAL VULNERABILITY FOR DEMO
-  return Buffer.from(JSON.stringify({ id: user.id, email: user.email, role: user.role })).toString("base64");
+  return Buffer.from(JSON.stringify({ id: user.id, email: user.email, role: user.rolef })).toString("base64");
 }
 
 function register(req, res) {
