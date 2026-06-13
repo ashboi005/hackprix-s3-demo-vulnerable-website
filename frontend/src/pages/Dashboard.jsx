@@ -29,8 +29,8 @@ const Dashboard = () => {
 
   // INTENTIONAL VULNERABILITY FOR SECURITY DEMO
   // DOM XSS: Reading URL parameters and rendering unsafely to demonstrate scanner detection.
-  const queryParams = new URLSearchParams(window.location.search);
-  const xssContent = queryParams.get("xss_payload") || "<em>No XSS payload provided. Try: ?xss_payload=&lt;img src=x onerror=alert(1)&gt;</em>";
+  // const queryParams = new URLSearchParams(window.location.search);
+  // const xssContent = queryParams.get("xss_payload") || "<em>No XSS payload provided. Try: ?xss_payload=&lt;img src=x onerror=alert(1)&gt;</em>";
 
   return (
     <DashboardLayout>
@@ -58,8 +58,8 @@ const Dashboard = () => {
           <p>Uploaded: {latestReport ? new Date(latestReport.uploaded_at).toDateString() : "-"}</p>
         </div>
       </div>
-
-      {/* INTENTIONAL VULNERABILITY FOR SECURITY DEMO */}
+      {/*
+      INTENTIONAL VULNERABILITY FOR SECURITY DEMO
       <div className="metric-card" style={{ marginTop: "20px" }}>
         <h3>Security Testing Container (XSS Test Area)</h3>
         <p className="muted" style={{ fontSize: "0.9rem", marginBottom: "10px" }}>
@@ -67,6 +67,7 @@ const Dashboard = () => {
         </p>
         <div dangerouslySetInnerHTML={{ __html: xssContent }} />
       </div>
+      */}
     </DashboardLayout>
   );
 };
