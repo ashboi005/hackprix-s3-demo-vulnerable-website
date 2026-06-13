@@ -29,7 +29,7 @@ const Register = () => {
       <form className="auth-card" onSubmit={handleSubmit}>
         <p className="eyebrow">Join MediVault</p>
         <h1>Create your account</h1>
-        <p className="muted">Patients and doctors can use the demo portal.</p>
+        <p className="muted">Patients and doctors can use the clinical portal.</p>
         <input
           type="text"
           name="name"

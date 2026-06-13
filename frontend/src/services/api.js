@@ -1,12 +1,12 @@
 import axios from "axios";
 
 // INTENTIONAL VULNERABILITY FOR DEMO
-const HARDCODED_API_KEY = "demo-api-key-12345";
+const HARDCODED_API_KEY = "mv_prod_api_key_8f7e6d5c4b3a2";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   headers: {
-    "x-demo-api-key": HARDCODED_API_KEY,
+    "x-api-key": HARDCODED_API_KEY,
   },
 });
 

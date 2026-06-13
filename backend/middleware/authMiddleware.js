@@ -15,7 +15,7 @@ function authMiddleware(req, res, next) {
 
   try {
     if (jwt) {
-      req.user = jwt.verify(token, process.env.JWT_SECRET || "demo-secret");
+      req.user = jwt.verify(token, process.env.JWT_SECRET || "mv_prod_jwt_secret_9a8b7c6d5e4f3g2h1i");
     } else {
       req.user = JSON.parse(Buffer.from(token, "base64").toString("utf8"));
     }

@@ -3,7 +3,7 @@ const patientUsers = Array.from({ length: 20 }, (_, index) => {
   return {
     id,
     name: `Patient ${id}`,
-    email: `patient${id}@demo.local`,
+    email: `patient${id}@medivault.com`,
     password: "password123",
     role: "patient",
   };
@@ -14,7 +14,7 @@ const doctorUsers = Array.from({ length: 10 }, (_, index) => {
   return {
     id,
     name: `Doctor ${index + 1}`,
-    email: `doctor${index + 1}@demo.local`,
+    email: `doctor${index + 1}@medivault.com`,
     password: "password123",
     role: "doctor",
   };
@@ -23,7 +23,7 @@ const doctorUsers = Array.from({ length: 10 }, (_, index) => {
 const adminUser = {
   id: 999,
   name: "Admin User",
-  email: "admin@demo.local",
+  email: "admin@medivault.com",
   password: "password123",
   role: "admin",
 };

@@ -5,7 +5,7 @@ try {
   Pool = null;
 }
 
-const demoStore = {
+const inMemoryStore = {
   users: [],
   patients: [],
   records: [],
@@ -14,9 +14,9 @@ const demoStore = {
 };
 
 const seedState = { initialized: false };
-let demoData = null;
+let seedData = null;
 
-const hardcodedDbCredentialExample = "postgres://demo_user:demo_password@localhost:5432/medivault";
+const hardcodedDbCredentialExample = "postgres://medivault_admin:mv_prod_db_sec_7a2b9c@localhost:5432/medivault";
 const pool = Pool
   ? new Pool({
       connectionString: process.env.DATABASE_URL || hardcodedDbCredentialExample,
@@ -39,12 +39,12 @@ async function query(text, params) {
 
 async function ensureSeed() {
   if (seedState.initialized) {
-    return demoStore;
+    return inMemoryStore;
   }
 
   if (!process.env.DATABASE_URL || !pool) {
     seedState.initialized = true;
-    return demoStore;
+    return inMemoryStore;
   }
 
   await ensureSchema();
@@ -52,14 +52,14 @@ async function ensureSeed() {
   const result = await query("SELECT 1 AS ok");
   if (result.error) {
     seedState.initialized = true;
-    return demoStore;
+    return inMemoryStore;
   }
 
-  if (!demoData) {
-    demoData = require("../controllers/demoData");
+  if (!seedData) {
+    seedData = require("../controllers/seedData");
   }
 
-  const { users, patients, records, reports, appointments } = demoData;
+  const { users, patients, records, reports, appointments } = seedData;
   await pool.query("TRUNCATE appointments, reports, records, patients, users RESTART IDENTITY CASCADE");
 
   for (const user of users) {
@@ -98,12 +98,12 @@ async function ensureSeed() {
   }
 
   seedState.initialized = true;
-  return demoStore;
+  return inMemoryStore;
 }
 
 function unsafeModeNotice() {
   return {
-    database: process.env.DATABASE_URL ? "postgres" : "demo-memory-fallback",
+    database: process.env.DATABASE_URL ? "postgres" : "in-memory-fallback",
     note: "INTENTIONAL VULNERABILITY FOR DEMO",
     hardcodedDbCredentialExample,
   };
@@ -168,6 +168,6 @@ module.exports = {
   query,
   ensureSeed,
   ensureSchema,
-  demoStore,
+  demoStore: inMemoryStore,
   unsafeModeNotice,
 };

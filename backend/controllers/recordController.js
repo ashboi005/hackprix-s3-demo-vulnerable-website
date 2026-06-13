@@ -1,12 +1,12 @@
-const demoData = require("./demoData");
+const seedData = require("./seedData");
 
 function listRecords(req, res) {
   // INTENTIONAL VULNERABILITY FOR DEMO
-  return res.json(demoData.records);
+  return res.json(seedData.records);
 }
 
 function getRecordById(req, res) {
-  const record = demoData.records.find((entry) => String(entry.id) === req.params.id);
+  const record = seedData.records.find((entry) => String(entry.id) === req.params.id);
   if (!record) {
     return res.status(404).json({ message: "Record not found" });
   }
@@ -15,7 +15,7 @@ function getRecordById(req, res) {
 }
 
 function createRecord(req, res) {
-  const nextId = demoData.records.length + 1;
+  const nextId = seedData.records.length + 1;
   const record = {
     id: nextId,
     patient_id: req.body.patient_id,
@@ -26,7 +26,7 @@ function createRecord(req, res) {
     created_at: new Date().toISOString(),
   };
 
-  demoData.records.push(record);
+  seedData.records.push(record);
   return res.status(201).json(record);
 }
 

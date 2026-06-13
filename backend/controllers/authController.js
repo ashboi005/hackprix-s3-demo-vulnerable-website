@@ -4,7 +4,7 @@ try {
 } catch (error) {
   jwt = null;
 }
-const demoData = require("./demoData");
+const seedData = require("./seedData");
 
 function issueToken(user) {
   if (jwt) {
@@ -18,18 +18,18 @@ function issueToken(user) {
 function register(req, res) {
   const { name, email, password, role } = req.body;
   const user = {
-    id: demoData.users.length + 1,
+    id: seedData.users.length + 1,
     name,
     email,
     password,
     role: role || "patient",
   };
 
-  demoData.users.push(user);
+  seedData.users.push(user);
 
   if (role === "patient") {
-    demoData.patients.push({
-      id: demoData.patients.length + 1,
+    seedData.patients.push({
+      id: seedData.patients.length + 1,
       user_id: user.id,
       name,
       email,
@@ -37,7 +37,7 @@ function register(req, res) {
       age: 30,
       blood_group: "O+",
       phone: "555-0000",
-      insurance_number: "INS-DEMO",
+      insurance_number: "INS-VAL-1000",
     });
   }
 
@@ -51,7 +51,7 @@ function register(req, res) {
 
 function login(req, res) {
   const { email, password } = req.body;
-  const user = demoData.users.find((entry) => entry.email === email && entry.password === password);
+  const user = seedData.users.find((entry) => entry.email === email && entry.password === password);
 
   if (!user) {
     return res.status(401).json({ message: "Invalid credentials" });

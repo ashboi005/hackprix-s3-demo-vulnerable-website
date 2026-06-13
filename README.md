@@ -1,17 +1,17 @@
 # MediVault
 
-Healthcare portal demo for the CodeSentinel hackathon. The frontend is React + Vite and the backend is Express + PostgreSQL-ready via `pg`.
+Healthcare portal for the CodeSentinel hackathon. The frontend is React + Vite and the backend is Express + PostgreSQL-ready via `pg`.
 
 ## Progress
 
 - [x] Frontend routes and layout scaffolded
 - [x] Express backend initialized
-- [x] PostgreSQL connection layer added with demo fallback
+- [x] PostgreSQL connection layer added with fallback seed state
 - [x] Auth, patients, records, reports, and appointments routes added
 - [x] Frontend pages wired to API helpers
 - [x] Legacy hardcoded arrays replaced in the live pages
 - [x] PostgreSQL schema script added
-- [x] Demo seed generation added for 20 patients, 10 doctors, 50 records, and 20 reports
+- [x] Seed generation added for 20 patients, 10 doctors, 50 records, and 20 reports
 - [ ] Runtime verification of Postgres-backed startup
 - [ ] Real auth hardening and role guards
 - [ ] Production file upload storage
@@ -20,7 +20,7 @@ Healthcare portal demo for the CodeSentinel hackathon. The frontend is React + V
 
 - React pages call `frontend/src/services/api.js`
 - Express exposes `/api/auth`, `/api/patients`, `/api/records`, `/api/reports`, and `/api/appointments`
-- `backend/db/db.js` tries `pg` and falls back to seeded demo memory data when no database is configured
+- `backend/db/db.js` tries `pg` and falls back to seeded memory data when no database is configured
 - `backend/db/schema.sql` contains the table DDL
 - The app is intentionally insecure for security-scanner demonstrations
 
@@ -139,12 +139,12 @@ Healthcare portal demo for the CodeSentinel hackathon. The frontend is React + V
 
 - `backend/db/db.js` includes a hardcoded database credential example
 - `frontend/src/services/api.js` uses a hardcoded local API URL fallback
-- `backend/controllers/authController.js` stores passwords in plaintext for demo purposes
+- `backend/controllers/authController.js` stores passwords in plaintext
 - `backend/controllers/patientController.js` exposes a public patient endpoint without auth
 - `backend/controllers/recordController.js` includes IDOR-style record lookup behavior
 - `backend/server.js` returns verbose error details
-- `frontend/src/services/api.js` includes a hardcoded API key example for demo scanning
-- `frontend/src/data/*.js` preserve sensitive mock-data surfaces for scanner demos
+- `frontend/src/services/api.js` includes a hardcoded API key example
+- `frontend/src/data/*.js` preserve sensitive mock-data surfaces for scanner validation
 
 ## Setup Steps
 
@@ -163,19 +163,38 @@ Healthcare portal demo for the CodeSentinel hackathon. The frontend is React + V
 ```env
 PORT=5000
 DATABASE_URL=postgres://user:password@localhost:5432/medivault
-JWT_SECRET=demo-secret
+JWT_SECRET=mv_prod_jwt_secret_9a8b7c6d5e4f3g2h1i
 ```
 
 4. `npm run dev`
 5. If you want the SQL path instead of the JS bootstrap, run `backend/db/schema.sql` against PostgreSQL first
 
-## Demo Data
+## Seed Data
 
 - 20 patients
 - 10 doctors
 - 50 records
 - 20 reports
 - 20 appointments
+
+## Renamed Items
+
+To transition from demo-specific naming to realistic, production-style naming, the following items have been renamed:
+
+| Original Item / Name | New Realistic Name | Description |
+| --- | --- | --- |
+| `backend/controllers/demoData.js` | `backend/controllers/seedData.js` | Seed data file name |
+| `demoData` (module/variable) | `seedData` | Module import and reference variable |
+| `demoStore` (variable) | `inMemoryStore` | Mock in-memory database store |
+| `demo-memory-fallback` | `in-memory-fallback` | String identifying fallback mode |
+| `demo-secret` (JWT secret) | `mv_prod_jwt_secret_9a8b7c6d5e4f3g2h1i` | Realistic, long production-style secret |
+| `demo-api-key-12345` | `mv_prod_api_key_8f7e6d5c4b3a2` | Production-style mock API key value |
+| `x-demo-api-key` | `x-api-key` | API key header name |
+| `INS-DEMO` | `INS-VAL-1000` | Mock insurance ID prefix |
+| `demo_user` / `demo_password` | `medivault_admin` / `mv_prod_db_sec_7a2b9c` | DB credentials in default connection string |
+| `@demo.local` (domain) | `@medivault.com` | Email domains for seed users |
+| "Demo User" (UI string) | "Portal User" | Display name in Top navigation |
+| "demo portal" (UI string) | "clinical portal" | Help text in Registration screen |
 
 ## Next Tasks
 
