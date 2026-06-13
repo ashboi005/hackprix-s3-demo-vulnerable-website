@@ -1,20 +1,28 @@
-const seedData = require("./seedData");
+const {
+  listAppointments: loadAppointments,
+  createAppointment: storeAppointment,
+  updateAppointment: storeAppointmentUpdate,
+  deleteAppointment: removeAppointment,
+} = require("../db/dataAccess");
 
-function listAppointments(req, res) {
-  return res.json(seedData.appointments);
+async function listAppointments(req, res) {
+  return res.json(await loadAppointments());
 }
 
-function createAppointment(req, res) {
-  const appointment = {
-    id: seedData.appointments.length + 1,
-    patient_id: req.body.patient_id,
-    doctor_id: req.body.doctor_id,
-    appointment_date: req.body.appointment_date,
-    status: req.body.status || "scheduled",
-  };
-
-  seedData.appointments.push(appointment);
-  return res.status(201).json(appointment);
+async function createAppointment(req, res) {
+  return res.status(201).json(await storeAppointment(req.body));
 }
 
-module.exports = { listAppointments, createAppointment };
+async function updateAppointment(req, res) {
+  const appointment = await storeAppointmentUpdate(req.params.id, req.body);
+  if (!appointment) return res.status(404).json({ message: "Appointment not found" });
+  return res.json(appointment);
+}
+
+async function deleteAppointment(req, res) {
+  const deleted = await removeAppointment(req.params.id);
+  if (!deleted) return res.status(404).json({ message: "Appointment not found" });
+  return res.json({ deleted: true });
+}
+
+module.exports = { listAppointments, createAppointment, updateAppointment, deleteAppointment };

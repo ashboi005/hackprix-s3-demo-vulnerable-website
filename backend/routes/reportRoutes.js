@@ -1,5 +1,5 @@
 const express = require("express");
-const { listReports, createReport } = require("../controllers/reportController");
+const { listReports, createReport, deleteReport } = require("../controllers/reportController");
 
 let multer = null;
 try {
@@ -13,5 +13,6 @@ const router = express.Router();
 
 router.get("/", listReports);
 router.post("/", upload.single("file"), createReport);
+router.delete("/:id", deleteReport);
 
 module.exports = router;

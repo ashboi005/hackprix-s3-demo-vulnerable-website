@@ -1,27 +1,39 @@
 # MediVault
 
-Healthcare portal for the CodeSentinel hackathon. The frontend is React + Vite and the backend is Express + PostgreSQL-ready via `pg`.
+Healthcare portal for the CodeSentinel hackathon. The frontend is React + Vite and the backend is Express with dual data modes:
+
+- `DATA_MODE=memory`
+- `DATA_MODE=postgres`
+
+PostgreSQL is the primary demo mode when a database is configured, and memory mode remains available.
 
 ## Progress
 
 - [x] Frontend routes and layout scaffolded
 - [x] Express backend initialized
-- [x] PostgreSQL connection layer added with fallback seed state
-- [x] Auth, patients, records, reports, and appointments routes added
-- [x] Frontend pages wired to API helpers
-- [x] Legacy hardcoded arrays replaced in the live pages
-- [x] PostgreSQL schema script added
-- [x] Seed generation added for 20 patients, 10 doctors, 50 records, and 20 reports
-- [ ] Runtime verification of Postgres-backed startup
-- [ ] Real auth hardening and role guards
-- [ ] Production file upload storage
+- [x] Memory data audited
+- [x] PostgreSQL schema designed
+- [x] `schema.sql` added
+- [x] Seed data created for 20 patients, 10 doctors, 50 records, and 20 reports
+- [x] Database connection layer added
+- [x] Users, patients, records, reports, and appointments migrated to mode-aware controllers
+- [x] Frontend pages connected to APIs
+- [x] CRUD pages added for Patients, Records, Reports, and Appointments
+- [x] Report uploads wired end to end
+- [x] Intentional vulnerabilities preserved and commented
+- [x] Memory mode verified through backend API checks
+- [x] Full CRUD verified in memory mode (API smoke tests)
+- [x] Frontend production build verified
+- [x] Browser flow verified in memory mode (register, dashboard, patients, records, reports, appointments)
+- [ ] PostgreSQL mode verified against a live database (blocked: DB user/bootstrap not configured on host)
 
 ## Architecture
 
 - React pages call `frontend/src/services/api.js`
 - Express exposes `/api/auth`, `/api/patients`, `/api/records`, `/api/reports`, and `/api/appointments`
-- `backend/db/db.js` tries `pg` and falls back to seeded memory data when no database is configured
-- `backend/db/schema.sql` contains the table DDL
+- `backend/db/db.js` selects memory or PostgreSQL mode using `DATA_MODE`
+- `backend/db/dataAccess.js` provides mode-aware reads and writes
+- `backend/controllers/seedData.js` holds deterministic seed data for both modes
 - The app is intentionally insecure for security-scanner demonstrations
 
 ## Folder Structure
@@ -40,6 +52,8 @@ Healthcare portal for the CodeSentinel hackathon. The frontend is React + Vite a
 - `backend/routes`
 - `backend/middleware`
 - `backend/db/db.js`
+- `backend/db/dataAccess.js`
+- `backend/db/schema.sql`
 - `backend/server.js`
 
 ## Packages
@@ -137,18 +151,18 @@ Healthcare portal for the CodeSentinel hackathon. The frontend is React + Vite a
 
 ## Vulnerabilities
 
-- `backend/db/db.js` includes a hardcoded database credential example
-- `frontend/src/services/api.js` uses a hardcoded local API URL fallback
-- `backend/controllers/authController.js` stores passwords in plaintext
-- `backend/controllers/patientController.js` exposes a public patient endpoint without auth
-- `backend/controllers/recordController.js` includes IDOR-style record lookup behavior
-- `backend/server.js` returns verbose error details
-- `frontend/src/services/api.js` includes a hardcoded API key example
-- `frontend/src/data/*.js` preserve sensitive mock-data surfaces for scanner validation
-- [NEW] `frontend/src/pages/Dashboard.jsx` (renders `xss_payload` URL parameter using `dangerouslySetInnerHTML`)
-  - **Expected CodeSentinel Detection**: DOM-based Cross-Site Scripting (XSS) / Unsafe HTML rendering.
-- [NEW] `git-history-leak.md` (provides instructions/scripts/docs showing how a secret can exist in commit history and later be removed)
-  - **Expected CodeSentinel Detection**: Secret leak history and Git history credential exposure.
+The following intentional vulnerabilities must remain in place:
+
+- hardcoded API key in [`frontend/src/services/api.js`](/D:\CodeSentinal_Demo\medivault\frontend\src\services\api.js)
+- hardcoded DB credential example in [`backend/db/db.js`](/D:\CodeSentinal_Demo\medivault\backend\db\db.js)
+- plaintext password storage in the auth flow
+- public patient endpoint without auth
+- IDOR-style record lookup
+- verbose error leakage from the backend error handler
+- sensitive frontend data in [`frontend/src/data`](/D:\CodeSentinal_Demo\medivault\frontend\src\data)
+- DOM XSS sink in [`frontend/src/pages/Dashboard.jsx`](/D:\CodeSentinal_Demo\medivault\frontend\src\pages\Dashboard.jsx)
+- weak JWT fallback in auth middleware
+- git-history leak demo file retained in the repo
 
 ## Setup Steps
 
@@ -162,16 +176,41 @@ Healthcare portal for the CodeSentinel hackathon. The frontend is React + Vite a
 
 1. `cd backend`
 2. `npm install`
-3. Create `.env` if you want a real Postgres connection:
+3. Set environment variables:
 
 ```env
+DATA_MODE=postgres
 PORT=5000
 DATABASE_URL=postgres://user:password@localhost:5432/medivault
 JWT_SECRET=mv_prod_jwt_secret_9a8b7c6d5e4f3g2h1i
 ```
 
-4. `npm run dev`
-5. If you want the SQL path instead of the JS bootstrap, run `backend/db/schema.sql` against PostgreSQL first
+4. Ensure PostgreSQL is running and bootstrap the database once (as a superuser):
+
+```sql
+CREATE USER medivault_admin WITH PASSWORD 'mv_prod_db_sec_7a2b9c';
+CREATE DATABASE medivault OWNER medivault_admin;
+```
+
+5. Run `backend/db/schema.sql` against the `medivault` database (tables are also auto-created on first backend start)
+6. `npm run dev` (or `npm start` for production)
+
+Memory mode uses `DATA_MODE=memory` and does not require a database.
+
+### Verification status (2026-06-13)
+
+| Check | Memory mode | PostgreSQL mode |
+| --- | --- | --- |
+| Register / login | Verified | Not verified |
+| Patients CRUD | Verified | Not verified |
+| Records CRUD | Verified | Not verified |
+| Reports upload/delete | Verified | Not verified |
+| Appointments CRUD | Verified | Not verified |
+| Restart persistence | N/A (in-memory) | Not verified |
+| Frontend build | `npm run build` passed | — |
+| Browser E2E flow | Verified | Not verified |
+
+PostgreSQL blocker on this host: the `postgresql-x64-18` Windows service was stopped; it was started successfully via `pg_ctl`, but connections fail with `password authentication failed` for both `medivault_admin` and `postgres` because the demo user/database have not been bootstrapped with a known superuser password.
 
 ## Seed Data
 
@@ -181,28 +220,8 @@ JWT_SECRET=mv_prod_jwt_secret_9a8b7c6d5e4f3g2h1i
 - 20 reports
 - 20 appointments
 
-## Renamed Items
-
-To transition from demo-specific naming to realistic, production-style naming, the following items have been renamed:
-
-| Original Item / Name | New Realistic Name | Description |
-| --- | --- | --- |
-| `backend/controllers/demoData.js` | `backend/controllers/seedData.js` | Seed data file name |
-| `demoData` (module/variable) | `seedData` | Module import and reference variable |
-| `demoStore` (variable) | `inMemoryStore` | Mock in-memory database store |
-| `demo-memory-fallback` | `in-memory-fallback` | String identifying fallback mode |
-| `demo-secret` (JWT secret) | `mv_prod_jwt_secret_9a8b7c6d5e4f3g2h1i` | Realistic, long production-style secret |
-| `demo-api-key-12345` | `mv_prod_api_key_8f7e6d5c4b3a2` | Production-style mock API key value |
-| `x-demo-api-key` | `x-api-key` | API key header name |
-| `INS-DEMO` | `INS-VAL-1000` | Mock insurance ID prefix |
-| `demo_user` / `demo_password` | `medivault_admin` / `mv_prod_db_sec_7a2b9c` | DB credentials in default connection string |
-| `@demo.local` (domain) | `@medivault.com` | Email domains for seed users |
-| "Demo User" (UI string) | "Portal User" | Display name in Top navigation |
-| "demo portal" (UI string) | "clinical portal" | Help text in Registration screen |
-
 ## Next Tasks
 
-1. Run the backend against a real PostgreSQL instance and confirm seeded rows are inserted
-2. Add frontend loading and error states per page
-3. Add upload previews and file persistence for reports
-4. Add auth-aware route protection and role-based navigation
+1. Bootstrap PostgreSQL (`medivault_admin` user + `medivault` database) and verify full CRUD + restart persistence
+2. Re-run browser flow against `DATA_MODE=postgres`
+3. Add route guards and role-aware navigation if needed for the demo

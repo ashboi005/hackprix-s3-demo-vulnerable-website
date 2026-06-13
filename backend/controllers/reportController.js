@@ -1,27 +1,26 @@
-const seedData = require("./seedData");
 const fs = require("fs");
 const path = require("path");
+const {
+  listReports: loadReports,
+  createReport: storeReport,
+  deleteReport: removeReport,
+} = require("../db/dataAccess");
 
-function listReports(req, res) {
-  return res.json(seedData.reports);
+async function listReports(req, res) {
+  return res.json(await loadReports());
 }
 
-function createReport(req, res) {
+async function createReport(req, res) {
   const uploadsDir = path.join(__dirname, "..", "uploads");
-  if (req.file && req.file.path) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  }
-
-  const report = {
-    id: seedData.reports.length + 1,
-    patient_id: req.body.patient_id,
-    report_name: req.body.report_name,
-    file_path: req.file ? req.file.path : req.body.file_path,
-    uploaded_at: new Date().toISOString(),
-  };
-
-  seedData.reports.push(report);
-  return res.status(201).json(report);
+  if (req.file && req.file.path) fs.mkdirSync(uploadsDir, { recursive: true });
+  const filePath = req.file ? req.file.path : req.body.file_path;
+  return res.status(201).json(await storeReport(req.body, filePath));
 }
 
-module.exports = { listReports, createReport };
+async function deleteReport(req, res) {
+  const deleted = await removeReport(req.params.id);
+  if (!deleted) return res.status(404).json({ message: "Report not found" });
+  return res.json({ deleted: true });
+}
+
+module.exports = { listReports, createReport, deleteReport };

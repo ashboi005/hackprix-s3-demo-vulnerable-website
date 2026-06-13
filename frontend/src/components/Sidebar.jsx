@@ -9,12 +9,20 @@ const Sidebar = () => {
       path: "/dashboard",
     },
     {
+      name: "Patients",
+      path: "/patients",
+    },
+    {
       name: "Medical Records",
       path: "/records",
     },
     {
       name: "Reports",
       path: "/reports",
+    },
+    {
+      name: "Appointments",
+      path: "/appointments",
     },
     {
       name: "Doctor Panel",

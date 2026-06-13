@@ -1,16 +1,36 @@
-const seedData = require("./seedData");
+const {
+  listPatients: loadPatients,
+  getPatientById: loadPatientById,
+  createPatient: storePatient,
+  updatePatient: storePatientUpdate,
+  deletePatient: removePatient,
+} = require("../db/dataAccess");
 
-function listPatients(req, res) {
+async function listPatients(req, res) {
   // INTENTIONAL VULNERABILITY FOR DEMO
-  return res.json(seedData.patients);
+  return res.json(await loadPatients());
 }
 
-function getPatientById(req, res) {
-  const patient = seedData.patients.find((entry) => String(entry.id) === req.params.id);
-  if (!patient) {
-    return res.status(404).json({ message: "Patient not found" });
-  }
+async function getPatientById(req, res) {
+  const patient = await loadPatientById(req.params.id);
+  if (!patient) return res.status(404).json({ message: "Patient not found" });
   return res.json(patient);
 }
 
-module.exports = { listPatients, getPatientById };
+async function createPatient(req, res) {
+  return res.status(201).json(await storePatient(req.body));
+}
+
+async function updatePatient(req, res) {
+  const patient = await storePatientUpdate(req.params.id, req.body);
+  if (!patient) return res.status(404).json({ message: "Patient not found" });
+  return res.json(patient);
+}
+
+async function deletePatient(req, res) {
+  const deleted = await removePatient(req.params.id);
+  if (!deleted) return res.status(404).json({ message: "Patient not found" });
+  return res.json({ deleted: true });
+}
+
+module.exports = { listPatients, getPatientById, createPatient, updatePatient, deletePatient };

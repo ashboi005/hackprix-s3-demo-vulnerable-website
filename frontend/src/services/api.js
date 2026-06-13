@@ -18,22 +18,30 @@ export const authApi = {
 export const patientApi = {
   list: () => api.get("/patients"),
   getById: (id) => api.get(`/patients/${id}`),
+  create: (payload) => api.post("/patients", payload),
+  update: (id, payload) => api.put(`/patients/${id}`, payload),
+  remove: (id) => api.delete(`/patients/${id}`),
 };
 
 export const recordApi = {
   list: () => api.get("/records"),
   getById: (id) => api.get(`/records/${id}`),
   create: (payload) => api.post("/records", payload),
+  update: (id, payload) => api.put(`/records/${id}`, payload),
+  remove: (id) => api.delete(`/records/${id}`),
 };
 
 export const reportApi = {
   list: () => api.get("/reports"),
   create: (payload) => api.post("/reports", payload),
+  remove: (id) => api.delete(`/reports/${id}`),
 };
 
 export const appointmentApi = {
   list: () => api.get("/appointments"),
   create: (payload) => api.post("/appointments", payload),
+  update: (id, payload) => api.put(`/appointments/${id}`, payload),
+  remove: (id) => api.delete(`/appointments/${id}`),
 };
 
 export default api;

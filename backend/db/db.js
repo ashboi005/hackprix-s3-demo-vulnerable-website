@@ -5,6 +5,15 @@ try {
   Pool = null;
 }
 
+const hardcodedDbCredentialExample = "postgres://medivault_admin:mv_prod_db_sec_7a2b9c@localhost:5432/medivault";
+const dataMode = (process.env.DATA_MODE || (process.env.DATABASE_URL ? "postgres" : "memory")).toLowerCase();
+
+const pool = Pool && dataMode === "postgres"
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL || hardcodedDbCredentialExample,
+    })
+  : null;
+
 const inMemoryStore = {
   users: [],
   patients: [],
@@ -13,104 +22,31 @@ const inMemoryStore = {
   appointments: [],
 };
 
-const seedState = { initialized: false };
 let seedData = null;
+let schemaReady = false;
 
-const hardcodedDbCredentialExample = "postgres://medivault_admin:mv_prod_db_sec_7a2b9c@localhost:5432/medivault";
-const pool = Pool
-  ? new Pool({
-      connectionString: process.env.DATABASE_URL || hardcodedDbCredentialExample,
-    })
-  : null;
-
-async function query(text, params) {
-  if (!pool) {
-    return { rows: [], rowCount: 0 };
-  }
-  try {
-    return await pool.query(text, params);
-  } catch (error) {
-    return {
-      rows: [],
-      error,
-    };
-  }
-}
-
-async function ensureSeed() {
-  if (seedState.initialized) {
-    return inMemoryStore;
-  }
-
-  if (!process.env.DATABASE_URL || !pool) {
-    seedState.initialized = true;
-    return inMemoryStore;
-  }
-
-  await ensureSchema();
-
-  const result = await query("SELECT 1 AS ok");
-  if (result.error) {
-    seedState.initialized = true;
-    return inMemoryStore;
-  }
-
+function getSeedData() {
   if (!seedData) {
     seedData = require("../controllers/seedData");
   }
+  return seedData;
+}
 
-  const { users, patients, records, reports, appointments } = seedData;
-  await pool.query("TRUNCATE appointments, reports, records, patients, users RESTART IDENTITY CASCADE");
-
-  for (const user of users) {
-    await pool.query(
-      "INSERT INTO users (id, name, email, password, role) VALUES ($1, $2, $3, $4, $5)",
-      [user.id, user.name, user.email, user.password, user.role],
-    );
-  }
-
-  for (const patient of patients) {
-    await pool.query(
-      "INSERT INTO patients (id, user_id, age, blood_group, phone, insurance_number) VALUES ($1, $2, $3, $4, $5, $6)",
-      [patient.id, patient.user_id, patient.age, patient.blood_group, patient.phone, patient.insurance_number],
-    );
-  }
-
-  for (const record of records) {
-    await pool.query(
-      "INSERT INTO records (id, patient_id, doctor_id, diagnosis, prescription, notes, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-      [record.id, record.patient_id, record.doctor_id, record.diagnosis, record.prescription, record.notes, record.created_at],
-    );
-  }
-
-  for (const report of reports) {
-    await pool.query(
-      "INSERT INTO reports (id, patient_id, report_name, file_path, uploaded_at) VALUES ($1, $2, $3, $4, $5)",
-      [report.id, report.patient_id, report.report_name, report.file_path, report.uploaded_at],
-    );
-  }
-
-  for (const appointment of appointments) {
-    await pool.query(
-      "INSERT INTO appointments (id, patient_id, doctor_id, appointment_date, status) VALUES ($1, $2, $3, $4, $5)",
-      [appointment.id, appointment.patient_id, appointment.doctor_id, appointment.appointment_date, appointment.status],
-    );
-  }
-
-  seedState.initialized = true;
-  return inMemoryStore;
+function isPostgresMode() {
+  return dataMode === "postgres" && !!pool;
 }
 
 function unsafeModeNotice() {
   return {
-    database: process.env.DATABASE_URL ? "postgres" : "in-memory-fallback",
+    dataMode,
+    database: isPostgresMode() ? "postgres" : "in-memory-fallback",
     note: "INTENTIONAL VULNERABILITY FOR DEMO",
     hardcodedDbCredentialExample,
   };
 }
 
 async function ensureSchema() {
-  if (!pool) {
+  if (!isPostgresMode() || schemaReady) {
     return { skipped: true };
   }
 
@@ -160,14 +96,99 @@ async function ensureSchema() {
     await pool.query(statement);
   }
 
+  schemaReady = true;
   return { skipped: false };
 }
 
+async function resetSerialSequences() {
+  const tables = ["users", "patients", "records", "reports", "appointments"];
+  for (const table of tables) {
+    await pool.query(
+      `SELECT setval(pg_get_serial_sequence('${table}', 'id'), COALESCE((SELECT MAX(id) FROM ${table}), 1))`,
+    );
+  }
+}
+
+async function seedPostgres() {
+  if (!isPostgresMode()) {
+    return { skipped: true };
+  }
+
+  await ensureSchema();
+  const existing = await pool.query("SELECT COUNT(*)::int AS count FROM users");
+  if (existing.rows[0].count > 0) {
+    return { skipped: true, reason: "already-seeded" };
+  }
+
+  const { users, patients, records, reports, appointments } = getSeedData();
+
+  for (const user of users) {
+    await pool.query(
+      "INSERT INTO users (id, name, email, password, role) VALUES ($1, $2, $3, $4, $5)",
+      [user.id, user.name, user.email, user.password, user.role],
+    );
+  }
+
+  for (const patient of patients) {
+    await pool.query(
+      "INSERT INTO patients (id, user_id, age, blood_group, phone, insurance_number) VALUES ($1, $2, $3, $4, $5, $6)",
+      [patient.id, patient.user_id, patient.age, patient.blood_group, patient.phone, patient.insurance_number],
+    );
+  }
+
+  for (const record of records) {
+    await pool.query(
+      "INSERT INTO records (id, patient_id, doctor_id, diagnosis, prescription, notes, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      [record.id, record.patient_id, record.doctor_id, record.diagnosis, record.prescription, record.notes, record.created_at],
+    );
+  }
+
+  for (const report of reports) {
+    await pool.query(
+      "INSERT INTO reports (id, patient_id, report_name, file_path, uploaded_at) VALUES ($1, $2, $3, $4, $5)",
+      [report.id, report.patient_id, report.report_name, report.file_path, report.uploaded_at],
+    );
+  }
+
+  for (const appointment of appointments) {
+    await pool.query(
+      "INSERT INTO appointments (id, patient_id, doctor_id, appointment_date, status) VALUES ($1, $2, $3, $4, $5)",
+      [appointment.id, appointment.patient_id, appointment.doctor_id, appointment.appointment_date, appointment.status],
+    );
+  }
+
+  await resetSerialSequences();
+  return { skipped: false };
+}
+
+async function ensureSeed() {
+  if (isPostgresMode()) {
+    return seedPostgres();
+  }
+  return inMemoryStore;
+}
+
+async function query(text, params) {
+  if (!isPostgresMode()) {
+    return { rows: [], rowCount: 0, mode: "memory" };
+  }
+
+  try {
+    return await pool.query(text, params);
+  } catch (error) {
+    return { rows: [], error, mode: "postgres" };
+  }
+}
+
 module.exports = {
+  dataMode,
   pool,
   query,
-  ensureSeed,
   ensureSchema,
-  demoStore: inMemoryStore,
+  ensureSeed,
+  seedPostgres,
+  isPostgresMode,
+  inMemoryStore,
   unsafeModeNotice,
+  hardcodedDbCredentialExample,
 };

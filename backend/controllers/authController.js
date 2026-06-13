@@ -4,7 +4,12 @@ try {
 } catch (error) {
   jwt = null;
 }
-const seedData = require("./seedData");
+
+const {
+  findUserByEmail,
+  createUser,
+  createPatientProfile,
+} = require("../db/dataAccess");
 
 function issueToken(user) {
   if (jwt) {
@@ -12,33 +17,19 @@ function issueToken(user) {
   }
 
   // INTENTIONAL VULNERABILITY FOR DEMO
-  return Buffer.from(JSON.stringify({ id: user.id, email: user.email, role: user.rolef })).toString("base64");
+  return Buffer.from(JSON.stringify({ id: user.id, email: user.email, role: user.role })).toString("base64");
 }
 
-function register(req, res) {
-  const { name, email, password, role } = req.body;
-  const user = {
-    id: seedData.users.length + 1,
-    name,
-    email,
-    password,
-    role: role || "patient",
-  };
+async function register(req, res) {
+  const { name, email, password, role, age, blood_group, phone, insurance_number } = req.body;
+  const existing = await findUserByEmail(email);
+  if (existing) {
+    return res.status(409).json({ message: "User already exists" });
+  }
 
-  seedData.users.push(user);
-
-  if (role === "patient") {
-    seedData.patients.push({
-      id: seedData.patients.length + 1,
-      user_id: user.id,
-      name,
-      email,
-      role,
-      age: 30,
-      blood_group: "O+",
-      phone: "555-0000",
-      insurance_number: "INS-VAL-1000",
-    });
+  const user = await createUser({ name, email, password, role });
+  if (role === "patient" || !role) {
+    await createPatientProfile(user, { age, blood_group, phone, insurance_number });
   }
 
   // INTENTIONAL VULNERABILITY FOR DEMO
@@ -49,11 +40,11 @@ function register(req, res) {
   });
 }
 
-function login(req, res) {
+async function login(req, res) {
   const { email, password } = req.body;
-  const user = seedData.users.find((entry) => entry.email === email && entry.password === password);
+  const user = await findUserByEmail(email);
 
-  if (!user) {
+  if (!user || user.password !== password) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
 

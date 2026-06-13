@@ -1,33 +1,37 @@
-const seedData = require("./seedData");
+const {
+  listRecords: loadRecords,
+  getRecordById: loadRecordById,
+  createRecord: storeRecord,
+  updateRecord: storeRecordUpdate,
+  deleteRecord: removeRecord,
+} = require("../db/dataAccess");
 
-function listRecords(req, res) {
+async function listRecords(req, res) {
   // INTENTIONAL VULNERABILITY FOR DEMO
-  return res.json(seedData.records);
+  return res.json(await loadRecords());
 }
 
-function getRecordById(req, res) {
-  const record = seedData.records.find((entry) => String(entry.id) === req.params.id);
-  if (!record) {
-    return res.status(404).json({ message: "Record not found" });
-  }
+async function getRecordById(req, res) {
+  const record = await loadRecordById(req.params.id);
+  if (!record) return res.status(404).json({ message: "Record not found" });
   // INTENTIONAL VULNERABILITY FOR DEMO
   return res.json(record);
 }
 
-function createRecord(req, res) {
-  const nextId = seedData.records.length + 1;
-  const record = {
-    id: nextId,
-    patient_id: req.body.patient_id,
-    doctor_id: req.body.doctor_id,
-    diagnosis: req.body.diagnosis,
-    prescription: req.body.prescription,
-    notes: req.body.notes,
-    created_at: new Date().toISOString(),
-  };
-
-  seedData.records.push(record);
-  return res.status(201).json(record);
+async function createRecord(req, res) {
+  return res.status(201).json(await storeRecord(req.body));
 }
 
-module.exports = { listRecords, getRecordById, createRecord };
+async function updateRecord(req, res) {
+  const record = await storeRecordUpdate(req.params.id, req.body);
+  if (!record) return res.status(404).json({ message: "Record not found" });
+  return res.json(record);
+}
+
+async function deleteRecord(req, res) {
+  const deleted = await removeRecord(req.params.id);
+  if (!deleted) return res.status(404).json({ message: "Record not found" });
+  return res.json({ deleted: true });
+}
+
+module.exports = { listRecords, getRecordById, createRecord, updateRecord, deleteRecord };

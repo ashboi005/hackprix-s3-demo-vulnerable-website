@@ -28,6 +28,11 @@ const Reports = () => {
     await loadReports();
   };
 
+  const handleDelete = async (id) => {
+    await reportApi.remove(id);
+    await loadReports();
+  };
+
   return (
     <DashboardLayout>
       <h1>Lab Reports</h1>
@@ -58,7 +63,7 @@ const Reports = () => {
             <h3>{report.report_name}</h3>
             <p>Path: {report.file_path}</p>
             <p>Uploaded: {new Date(report.uploaded_at).toLocaleDateString()}</p>
-            <button>View Report</button>
+            <button type="button" onClick={() => handleDelete(report.id)}>Delete</button>
           </article>
         ))}
       </div>
