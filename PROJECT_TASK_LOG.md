@@ -24,10 +24,13 @@ MediVault migration log for adding PostgreSQL support while preserving memory mo
 - [x] Log verification and handoff notes
 - [x] Verify browser frontend flow end to end (memory mode)
 - [x] Verify frontend production build
-- [ ] Verify PostgreSQL mode against a live database
+- [x] Verify PostgreSQL mode against a live database
 
 # Completed Tasks
-
+- [x] 2026-06-14 09:41 IST - Live PostgreSQL and memory-mode verification
+  - Files changed: `README.md`, `PROJECT_TASK_LOG.md`
+  - Result: PostgreSQL mode booted from the current `.env` on port 5000, auth/register/login/CRUD/upload all passed, backend restart preserved the new user and uploaded report, and memory mode also passed the same live smoke path on port 5001.
+  - Verification: PowerShell `Invoke-RestMethod` smoke tests, `curl.exe` multipart upload, backend restart/health checks
 - [x] Created migration log file
 - [x] Added `DATA_MODE`-aware database layer
 - [x] Added PostgreSQL schema file
@@ -101,14 +104,16 @@ MediVault migration log for adding PostgreSQL support while preserving memory mo
 
 # Open Issues
 
-- PostgreSQL mode is implemented but not verified against a live database in this workspace.
-- PostgreSQL 18 can be started via `D:\PostgreSQL\18\bin\pg_ctl.exe -D D:\PostgreSQL\18\data start`, but the demo credentials in `db.js` are not bootstrapped on this host (`password authentication failed for user "medivault_admin"`).
+- PostgreSQL mode is implemented and verified against a live database in this workspace.
+- PostgreSQL mode now verifies successfully in this workspace using the current `.env` settings and a live backend restart.
 - The Windows service `postgresql-x64-18` remains stopped and cannot be started from this session (`Access is denied`); `pg_ctl start` works as a workaround.
 - Browser login button automation did not reliably submit React controlled password state; direct API login from the browser succeeded and registration flow worked.
 
 # Verification Results
 
 - `node -c` passed for backend files touched in the migration.
+- Live PostgreSQL verification passed for register, login, patients, records, reports, appointments, report upload, and restart persistence.
+- Live memory-mode verification passed for register, login, patients, records, reports, and appointments on a separate port.
 - Frontend production build passed (`npm run build`, 2026-06-14).
 - Memory-mode HTTP checks passed for:
   - register
@@ -129,3 +134,4 @@ MediVault migration log for adding PostgreSQL support while preserving memory mo
 - Keep enough context here for a new agent to continue if the thread is lost.
 - Primary next step: bootstrap PostgreSQL (`CREATE USER medivault_admin ...; CREATE DATABASE medivault ...;`) with a known superuser password, then verify CRUD + restart persistence with `DATA_MODE=postgres`.
 - `seedPostgres()` now seeds only on empty DB; do not reintroduce startup TRUNCATE.
+

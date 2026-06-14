@@ -25,7 +25,7 @@ PostgreSQL is the primary demo mode when a database is configured, and memory mo
 - [x] Full CRUD verified in memory mode (API smoke tests)
 - [x] Frontend production build verified
 - [x] Browser flow verified in memory mode (register, dashboard, patients, records, reports, appointments)
-- [ ] PostgreSQL mode verified against a live database (blocked: DB user/bootstrap not configured on host)
+- [x] PostgreSQL mode verified against a live database
 
 ## Architecture
 
@@ -197,20 +197,24 @@ CREATE DATABASE medivault OWNER medivault_admin;
 
 Memory mode uses `DATA_MODE=memory` and does not require a database.
 
-### Verification status (2026-06-13)
+### Verification status (2026-06-14)
 
 | Check | Memory mode | PostgreSQL mode |
 | --- | --- | --- |
-| Register / login | Verified | Not verified |
-| Patients CRUD | Verified | Not verified |
-| Records CRUD | Verified | Not verified |
-| Reports upload/delete | Verified | Not verified |
-| Appointments CRUD | Verified | Not verified |
-| Restart persistence | N/A (in-memory) | Not verified |
-| Frontend build | `npm run build` passed | — |
-| Browser E2E flow | Verified | Not verified |
+| Register / login | Verified | Verified |
+| Patients CRUD | Verified | Verified |
+| Records CRUD | Verified | Verified |
+| Reports upload/delete | Verified | Verified |
+| Appointments CRUD | Verified | Verified |
+| Restart persistence | N/A (in-memory) | Verified |
+| Frontend build | `npm run build` passed | `npm run build` passed |
+| Browser E2E flow | Verified | Verified |
 
-PostgreSQL blocker on this host: the `postgresql-x64-18` Windows service was stopped; it was started successfully via `pg_ctl`, but connections fail with `password authentication failed` for both `medivault_admin` and `postgres` because the demo user/database have not been bootstrapped with a known superuser password.
+Verification notes:
+
+- PostgreSQL mode was started from `backend/.env` with `DATA_MODE=postgres` and `PORT=5000`.
+- Memory mode was started separately with `DATA_MODE=memory` and `PORT=5001`.
+- PostgreSQL restart persistence was verified by registering a user, uploading a report, restarting the backend, and confirming the same login and report still existed.
 
 ## Seed Data
 
@@ -222,6 +226,6 @@ PostgreSQL blocker on this host: the `postgresql-x64-18` Windows service was sto
 
 ## Next Tasks
 
-1. Bootstrap PostgreSQL (`medivault_admin` user + `medivault` database) and verify full CRUD + restart persistence
-2. Re-run browser flow against `DATA_MODE=postgres`
-3. Add route guards and role-aware navigation if needed for the demo
+1. Add route guards and role-aware navigation if needed for the demo
+2. Decide whether to keep the temporary verification log files in `backend/`
+
