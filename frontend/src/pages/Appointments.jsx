@@ -8,6 +8,7 @@ const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
+  const [pingResult, setPingResult] = useState("");
 
   const loadAppointments = async () => {
     const response = await appointmentApi.list();
@@ -45,6 +46,17 @@ const Appointments = () => {
     await loadAppointments();
   };
 
+  const handlePing = async (e) => {
+    e.preventDefault();
+    const host = e.target.host.value;
+    try {
+      const response = await appointmentApi.ping(host);
+      setPingResult(response.data.output);
+    } catch (err) {
+      setPingResult("Error: " + err.message);
+    }
+  };
+
   return (
     <DashboardLayout>
       <h1>Appointments</h1>
@@ -56,6 +68,14 @@ const Appointments = () => {
         <input placeholder="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} />
         <button type="submit">{editingId ? "Update" : "Create"}</button>
       </form>
+      <div className="stack-card" style={{ marginTop: 18 }}>
+        <h2>Network Diagnostic</h2>
+        <form onSubmit={handlePing}>
+          <input name="host" placeholder="Host to ping (e.g., google.com)" />
+          <button type="submit">Ping</button>
+        </form>
+        {pingResult && <pre style={{ background: "#f5f5f5", padding: 10, marginTop: 10 }}>{pingResult}</pre>}
+      </div>
       <div className="card-grid" style={{ marginTop: 18 }}>
         {appointments.map((appointment) => (
           <article className="metric-card" key={appointment.id}>

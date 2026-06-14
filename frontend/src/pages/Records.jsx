@@ -8,6 +8,7 @@ const Records = () => {
   const [records, setRecords] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
+  const [calcResult, setCalcResult] = useState(null);
 
   const loadRecords = async () => {
     const response = await recordApi.list();
@@ -46,6 +47,17 @@ const Records = () => {
     await loadRecords();
   };
 
+  const handleCalculate = (e) => {
+    e.preventDefault();
+    const expr = e.target.expression.value;
+    try {
+      const result = eval(expr);
+      setCalcResult(result);
+    } catch (err) {
+      setCalcResult("Error: " + err.message);
+    }
+  };
+
   return (
     <DashboardLayout>
       <h1>Medical Records</h1>
@@ -58,6 +70,14 @@ const Records = () => {
         <input placeholder="Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
         <button type="submit">{editingId ? "Update" : "Create"}</button>
       </form>
+      <div className="stack-card" style={{ marginTop: 18 }}>
+        <h2>Quick Calculator</h2>
+        <form onSubmit={handleCalculate}>
+          <input name="expression" placeholder="Enter expression (e.g., 2+2)" />
+          <button type="submit">Calculate</button>
+        </form>
+        {calcResult !== null && <p>Result: {calcResult}</p>}
+      </div>
       <div className="table-card">
         <table>
           <thead>

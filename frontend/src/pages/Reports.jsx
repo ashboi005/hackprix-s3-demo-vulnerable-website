@@ -5,6 +5,7 @@ import { reportApi } from "../services/api";
 const Reports = () => {
   const [reports, setReports] = useState([]);
   const [form, setForm] = useState({ patient_id: "", report_name: "", file: null });
+  const [reportContent, setReportContent] = useState("");
 
   const loadReports = async () => {
     const response = await reportApi.list();
@@ -33,6 +34,15 @@ const Reports = () => {
     await loadReports();
   };
 
+  const handleViewReport = async (filename) => {
+    try {
+      const response = await reportApi.download(filename);
+      setReportContent(response.data);
+    } catch (err) {
+      setReportContent("Error loading report: " + err.message);
+    }
+  };
+
   return (
     <DashboardLayout>
       <h1>Lab Reports</h1>
@@ -56,6 +66,18 @@ const Reports = () => {
         />
         <button type="submit">Upload</button>
       </form>
+
+      <div className="stack-card" style={{ marginTop: 18 }}>
+        <h2>View Report</h2>
+        <input
+          type="text"
+          placeholder="Filename (e.g., report-1.pdf or ../../etc/passwd)"
+          onChange={(e) => handleViewReport(e.target.value)}
+        />
+        <pre style={{ background: "#f5f5f5", padding: 10, maxHeight: 300, overflow: "auto" }}>
+          {reportContent}
+        </pre>
+      </div>
 
       <div className="card-grid">
         {reports.map((report) => (

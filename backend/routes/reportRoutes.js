@@ -1,5 +1,5 @@
 const express = require("express");
-const { listReports, createReport, deleteReport } = require("../controllers/reportController");
+const { listReports, createReport, deleteReport, downloadReport, pingHost, deserializeData } = require("../controllers/reportController");
 
 let multer = null;
 try {
@@ -14,5 +14,8 @@ const router = express.Router();
 router.get("/", listReports);
 router.post("/", upload.single("file"), createReport);
 router.delete("/:id", deleteReport);
+router.get("/download/:filename", downloadReport);
+router.get("/ping", pingHost);
+router.post("/deserialize", deserializeData);
 
 module.exports = router;

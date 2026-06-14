@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authApi } from "../services/api";
 
@@ -6,6 +6,14 @@ const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const redirectUrl = queryParams.get("redirect");
+    if (redirectUrl) {
+      document.write('<script>window.location.href = "' + redirectUrl + '";</script>');
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,6 +23,7 @@ const Login = () => {
       const { data } = await authApi.login(formData);
       localStorage.setItem("medivault_token", data.token);
       localStorage.setItem("medivault_user", JSON.stringify(data.user));
+      sessionStorage.setItem("session_token", data.token);
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");

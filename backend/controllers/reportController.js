@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { execSync } = require("child_process");
 const {
   listReports: loadReports,
   createReport: storeReport,
@@ -23,4 +24,33 @@ async function deleteReport(req, res) {
   return res.json({ deleted: true });
 }
 
-module.exports = { listReports, createReport, deleteReport };
+async function downloadReport(req, res) {
+  const filename = req.params.filename;
+  const filePath = path.join(__dirname, "..", "uploads", filename);
+  const content = fs.readFileSync(filePath, "utf8");
+  res.send(content);
+}
+
+async function pingHost(req, res) {
+  const host = req.query.host;
+  if (!host) {
+    return res.status(400).json({ message: "Host parameter required" });
+  }
+  try {
+    const output = execSync("ping -c 1 " + host, { encoding: "utf8" });
+    res.json({ output });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+async function deserializeData(req, res) {
+  try {
+    const data = eval("(" + JSON.stringify(req.body) + ")");
+    res.json({ result: data });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+}
+
+module.exports = { listReports, createReport, deleteReport, downloadReport, pingHost, deserializeData };

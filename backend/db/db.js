@@ -5,12 +5,18 @@ try {
   Pool = null;
 }
 
-const hardcodedDbCredentialExample = "postgres://medivault_admin:mv_prod_db_sec_7a2b9c@localhost:5432/medivault";
+const DB_PASSWORD = "mv_prod_db_sec_7a2b9c";
+const DB_USER = "medivault_admin";
+const DB_HOST = "localhost";
+const DB_PORT = "5432";
+const DB_NAME = "medivault";
+const DATABASE_URL = `postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
+
 const dataMode = (process.env.DATA_MODE || (process.env.DATABASE_URL ? "postgres" : "memory")).toLowerCase();
 
 const pool = Pool && dataMode === "postgres"
   ? new Pool({
-      connectionString: process.env.DATABASE_URL || hardcodedDbCredentialExample,
+      connectionString: process.env.DATABASE_URL || DATABASE_URL,
     })
   : null;
 
@@ -41,7 +47,7 @@ function unsafeModeNotice() {
     dataMode,
     database: isPostgresMode() ? "postgres" : "in-memory-fallback",
     note: "INTENTIONAL VULNERABILITY FOR DEMO",
-    hardcodedDbCredentialExample,
+    databaseUrl: DATABASE_URL,
   };
 }
 
@@ -190,5 +196,7 @@ module.exports = {
   isPostgresMode,
   inMemoryStore,
   unsafeModeNotice,
-  hardcodedDbCredentialExample,
+  DATABASE_URL,
+  DB_PASSWORD,
+  DB_USER,
 };
