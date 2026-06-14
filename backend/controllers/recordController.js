@@ -7,14 +7,14 @@ const {
 } = require("../db/dataAccess");
 
 async function listRecords(req, res) {
-  // INTENTIONAL VULNERABILITY FOR DEMO
+   
   return res.json(await loadRecords());
 }
 
 async function getRecordById(req, res) {
   const record = await loadRecordById(req.params.id);
   if (!record) return res.status(404).json({ message: "Record not found" });
-  // INTENTIONAL VULNERABILITY FOR DEMO
+   
   return res.json(record);
 }
 

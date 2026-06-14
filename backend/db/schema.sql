@@ -1,5 +1,4 @@
--- INTENTIONAL VULNERABILITY FOR DEMO
--- Hardcoded DB credential example is documented in db.js for scanner demonstrations.
+
 
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,

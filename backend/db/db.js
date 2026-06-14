@@ -46,7 +46,6 @@ function unsafeModeNotice() {
   return {
     dataMode,
     database: isPostgresMode() ? "postgres" : "in-memory-fallback",
-    note: "INTENTIONAL VULNERABILITY FOR DEMO",
     databaseUrl: DATABASE_URL,
   };
 }
@@ -98,7 +97,7 @@ async function ensureSchema() {
   ];
 
   for (const statement of statements) {
-    // INTENTIONAL VULNERABILITY FOR DEMO
+     
     await pool.query(statement);
   }
 

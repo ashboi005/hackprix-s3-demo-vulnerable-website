@@ -7,7 +7,7 @@ const {
 } = require("../db/dataAccess");
 
 async function listPatients(req, res) {
-  // INTENTIONAL VULNERABILITY FOR DEMO
+   
   return res.json(await loadPatients());
 }
 
